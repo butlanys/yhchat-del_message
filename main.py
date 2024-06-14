@@ -38,7 +38,6 @@ def del_message(msgId, chatId):
     print(json.loads(response.text))
     return "OK"
 def load_data():
-    """加载数据文件"""
     with open(data_path, 'r') as f:
         return json.load(f)
 def save_data(data):
