@@ -2,7 +2,7 @@ from flask import Flask, request, jsonify
 import json
 import requests
 import os
-TOKEN = "" # 可在官网后台获取
+TOKEN = ""  # 可在官网后台获取
 app = Flask(__name__)
 data_path = 'data.json'
 if not os.path.exists(data_path):
@@ -49,12 +49,25 @@ def handle_message(json_data):
         chat_id = json_data["event"]["chat"]["chatId"]
         msg_id = json_data["event"]["message"]["msgId"]
         content = json_data["event"]["message"]["content"]["text"]
+        user_id = json_data["event"]["sender"]["senderId"]
+        user_name = json_data["event"]["sender"]["senderNickname"]
         data = load_data()
         forbidden_words = data.get(chat_id, {}).get("woafca", {}).get("value", "").split('\n')
         for word in forbidden_words:
             if word in content:
                 del_message(msg_id, chat_id)
                 yhchat_push(chat_id, "group", "text", f"你发送的消息包含违规词，已被自动撤回")
+
+                # 获取群主 ID、群名称并发送私聊通知
+                owner_id = data.get(chat_id, {}).get("ebxulq", {}).get("value", "")
+                group_name = data.get(chat_id, {}).get("enkfum", {}).get("value", "")
+                if owner_id:
+                    message = f"群 [{group_name}({chat_id})] 中的一条消息因包含违规词被撤回\n" \
+                              f"被撤回用户：{user_name}\n" \
+                              f"被撤回用户id：{user_id}\n" \
+                              f"原消息内容：{content}\n" \
+                              f"命中的违规词：{word}"
+                    yhchat_push(owner_id, "user", "text", message)
                 break
     elif event_type == "bot.setting":
         chat_id = json_data["event"]["groupId"]
