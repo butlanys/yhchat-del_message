@@ -4,7 +4,7 @@ import requests
 from flask import Flask, request, jsonify
 import zxing
 
-TOKEN = "2567cb7b149e46128620d1b17f319166"  # 可在官网后台获取
+TOKEN = ""  # 可在官网后台获取
 app = Flask(__name__)
 data_path = 'data.json'
 tmp_dir = 'tmp'
