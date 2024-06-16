@@ -6,3 +6,7 @@
 * 支持图片二维码识别
 
 - 默认监听http://server_ip:56669/yhchat
+
+* 表单示例
+
+![](images/1.png)
