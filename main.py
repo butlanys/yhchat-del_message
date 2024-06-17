@@ -10,6 +10,7 @@ id_2 = ""  # 群主的用户id的表单id
 id_3 = ""  # 群名称的表单id
 id_4 = ""  # 图片二维码识别开关的表单id
 id_5 = ""  # 违规网址链接的表单id
+id_6 = ""  # 撤回后的提示消息的表单id
 
 TOKEN = ""  # 可在官网后台获取
 app = Flask(__name__)
@@ -116,13 +117,13 @@ def check_image_for_qr_code(image_url, image_name, forbidden_urls):
                             os.remove(image_path)
                             return True, url_in_html
         else:
-            print("No QR code found in the image")
+            print("此图像没有二维码")
 
         os.remove(image_path)
         return False, None
 
     except Exception as e:
-        print(f"Error during QR code check: {e}")
+        print(f"扫描图像中的二维码失败: {e}")
         return False, None
 
 
@@ -145,7 +146,12 @@ def handle_message(json_data):
             for word in forbidden_words:
                 if word in content:
                     del_message(msg_id, chat_id)
-                    yhchat_push(chat_id, "group", "text", {"text": "你发送的消息包含违规词，已被自动撤回"})
+
+                    warn_message = data.get(chat_id, {}).get(id_6, {}).get("value", "")
+                    if warn_message:
+                        yhchat_push(chat_id, "group", "text", {"text": warn_message})
+                    else:
+                        yhchat_push(chat_id, "group", "text", {"text": "你发送的消息包含违规词，已被自动撤回"})
 
                     owner_id = data.get(chat_id, {}).get(id_2, {}).get("value", "")
                     group_name = data.get(chat_id, {}).get(id_3, {}).get("value", "")
