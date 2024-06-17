@@ -148,11 +148,13 @@ def handle_message(json_data):
                     del_message(msg_id, chat_id)
 
                     warn_message = data.get(chat_id, {}).get(id_6, {}).get("value", "")
+                    print(f"{warn_message}")
+                    print(f"用户名：{user_name}命中规则：{word}")
                     if warn_message:
-                        yhchat_push(chat_id, "group", "text", {"text": warn_message})
+                        formatted_warn_message = warn_message.format(user_name=user_name, word=word) 
+                        yhchat_push(chat_id, "group", "text", {"text": formatted_warn_message})
                     else:
                         yhchat_push(chat_id, "group", "text", {"text": "你发送的消息包含违规词，已被自动撤回"})
-
                     owner_id = data.get(chat_id, {}).get(id_2, {}).get("value", "")
                     group_name = data.get(chat_id, {}).get(id_3, {}).get("value", "")
                     if owner_id:
