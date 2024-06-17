@@ -140,7 +140,7 @@ def handle_message(json_data):
         forbidden_urls = data.get(chat_id, {}).get(id_5, {}).get("value", "").split('\n')
         enable_qr_check = data.get(chat_id, {}).get(id_4, {}).get("value", False)
 
-        if content_type == "text":
+        if content_type == "text" or content_type == "markdown":
             content = json_data["event"]["message"]["content"]["text"]
             for word in forbidden_words:
                 if word in content:
