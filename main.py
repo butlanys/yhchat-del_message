@@ -5,21 +5,20 @@ from flask import Flask, request, jsonify
 import zxing
 from threading import Thread
 
-id_1 = ""  # 敏感词的表单id
-id_2 = ""  # 群主的用户id的表单id
-id_3 = ""  # 群名称的表单id
-id_4 = ""  # 图片二维码识别开关的表单id
-id_5 = ""  # 违规网址链接的表单id
-id_6 = ""  # 撤回后的提示消息的表单id
+id_1 = "woafca"  # 敏感词的表单id
+id_2 = "ebxulq"  # 群主的用户id的表单id
+id_3 = "enkfum"  # 群名称的表单id
+id_4 = "rtwtvb"  # 图片二维码识别开关的表单id
+id_5 = "dtiknh"  # 违规网址链接的表单id
+id_6 = "lpbjsp"  # 撤回后的提示消息的表单id
 
-TOKEN = ""  # 可在官网后台获取
+TOKEN = "bdb676897ca142049cfecbae0403dfdd"  # 可在官网后台获取
 app = Flask(__name__)
 data_path = 'data.json'
 tmp_dir = 'tmp'
 
 if not os.path.exists(tmp_dir):
     os.makedirs(tmp_dir)
-
 
 def yhchat_push(recvId, recvType, contentType, content):
     url = f"https://chat-go.jwzhd.com/open-apis/v1/bot/send?token={TOKEN}"
@@ -36,7 +35,6 @@ def yhchat_push(recvId, recvType, contentType, content):
     # print(json.loads(response.text))
     return json.loads(response.text)
 
-
 def del_message(msgId, chatId):
     url = f"https://chat-go.jwzhd.com/open-apis/v1/bot/recall?token={TOKEN}"
     payload = json.dumps({
@@ -51,16 +49,13 @@ def del_message(msgId, chatId):
     # print(json.loads(response.text))
     return json.loads(response.text)
 
-
 def load_data():
     with open(data_path, 'r') as f:
         return json.load(f)
 
-
 def save_data(data):
     with open(data_path, 'w') as f:
         json.dump(data, f)
-
 
 def is_forbidden_url(url, forbidden_urls):
     for forbidden_url in forbidden_urls:
@@ -68,13 +63,11 @@ def is_forbidden_url(url, forbidden_urls):
             return True
     return False
 
-
 def extract_urls_from_html(html_content):
     import re
     urls = re.findall(r'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\\(\\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+',
                      html_content)
     return urls
-
 
 def get_redirect_url(url, max_redirects=5):
     try:
@@ -88,7 +81,6 @@ def get_redirect_url(url, max_redirects=5):
     except Exception as e:
         print(f"Error during redirection: {e}")
         return None
-
 
 def check_image_for_qr_code(image_url, image_name, forbidden_urls):
     try:
@@ -126,7 +118,6 @@ def check_image_for_qr_code(image_url, image_name, forbidden_urls):
         print(f"扫描图像中的二维码失败: {e}")
         return False, None
 
-
 def handle_message(json_data):
     event_type = json_data.get("header", {}).get("eventType")
     if event_type == "message.receive.normal":
@@ -144,12 +135,11 @@ def handle_message(json_data):
         if content_type == "text" or content_type == "markdown":
             content = json_data["event"]["message"]["content"]["text"]
             for word in forbidden_words:
+                if forbidden_words[0] == '':
+                    break
                 if word in content:
                     del_message(msg_id, chat_id)
-
                     warn_message = data.get(chat_id, {}).get(id_6, {}).get("value", "")
-                    print(f"{warn_message}")
-                    print(f"用户名：{user_name}命中规则：{word}")
                     if warn_message:
                         formatted_warn_message = warn_message.format(user_name=user_name, word=word) 
                         yhchat_push(chat_id, "group", "text", {"text": formatted_warn_message})
@@ -172,7 +162,6 @@ def handle_message(json_data):
             is_forbidden, matched_url = check_image_for_qr_code(image_url, image_name, forbidden_urls)
             if is_forbidden:
                 del_message(msg_id, chat_id)
-                # yhchat_push(chat_id, "group", "text", {"text": f"你发送的图片包含违规二维码链接({matched_url})，已被自动撤回"})
                 yhchat_push(chat_id, "group", "text", {"text": f"你发送的图片包含违规二维码链接，已被自动撤回"})
 
                 owner_id = data.get(chat_id, {}).get(id_2, {}).get("value", "")
@@ -192,19 +181,16 @@ def handle_message(json_data):
         data[chat_id] = json.loads(setting_json)
         save_data(data)
 
-
 @app.route('/yhchat', methods=['POST'])
 def receive_message():
     try:
         json_data = request.get_json()
-        # 使用多线程处理消息
         thread = Thread(target=handle_message, args=(json_data,))
         thread.start()
         return jsonify({'status': 'success'}), 200
     except Exception as e:
         print("Error:", e)
         return jsonify({'status': 'error', 'message': str(e)}), 500
-
 
 if __name__ == '__main__':
     if not os.path.exists(data_path):
