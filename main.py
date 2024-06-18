@@ -5,14 +5,14 @@ from flask import Flask, request, jsonify
 import zxing
 from threading import Thread
 
-id_1 = "woafca"  # 敏感词的表单id
-id_2 = "ebxulq"  # 群主的用户id的表单id
-id_3 = "enkfum"  # 群名称的表单id
-id_4 = "rtwtvb"  # 图片二维码识别开关的表单id
-id_5 = "dtiknh"  # 违规网址链接的表单id
-id_6 = "lpbjsp"  # 撤回后的提示消息的表单id
+id_1 = ""  # 敏感词的表单id
+id_2 = ""  # 群主的用户id的表单id
+id_3 = ""  # 群名称的表单id
+id_4 = ""  # 图片二维码识别开关的表单id
+id_5 = ""  # 违规网址链接的表单id
+id_6 = ""  # 撤回后的提示消息的表单id
 
-TOKEN = "bdb676897ca142049cfecbae0403dfdd"  # 可在官网后台获取
+TOKEN = ""  # 可在官网后台获取
 app = Flask(__name__)
 data_path = 'data.json'
 tmp_dir = 'tmp'
