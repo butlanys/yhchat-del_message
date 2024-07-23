@@ -6,18 +6,23 @@ import zxing
 from threading import Thread
 import base64
 import re
+from dotenv import load_dotenv
 
-id_1 = ""  # 敏感词的表单id
-id_2 = ""  # 群主的用户id的表单id
-id_3 = ""  # 群名称的表单id
-id_4 = ""  # 图片二维码识别开关的表单id
-id_5 = ""  # 违规网址链接的表单id
-id_6 = ""  # 撤回后的提示消息的表单id
-# id_7 = ""  # 使用管理员权限撤回开关的表单id
-id_8 = ""  # 撤回所有带二维码的图片
+load_dotenv()  # 加载.env文件
 
-TOKEN = ""  # 可在官网后台获取
-# ADMIN_TOKEN = ""  # 管理员token
+# 从环境变量中获取配置
+id_1 = os.getenv("ID_1")  # 敏感词的表单id
+id_2 = os.getenv("ID_2")  # 群主的用户id的表单id
+id_3 = os.getenv("ID_3")  # 群名称的表单id
+id_4 = os.getenv("ID_4")  # 图片二维码识别开关的表单id
+id_5 = os.getenv("ID_5")  # 违规网址链接的表单id
+id_6 = os.getenv("ID_6")  # 撤回后的提示消息的表单id
+id_7 = os.getenv("ID_7")  # 使用管理员权限撤回开关的表单id
+id_8 = os.getenv("ID_8")  # 撤回所有带二维码的图片
+
+TOKEN = os.getenv("TOKEN")  # 可在官网后台获取
+ADMIN_TOKEN = os.getenv("ADMIN_TOKEN")  # 管理员token
+
 app = Flask(__name__)
 data_path = 'data.json'
 tmp_dir = 'tmp'
@@ -30,6 +35,20 @@ def yhchat_push(recvId, recvType, contentType, content):
     url = f"https://chat-go.jwzhd.com/open-apis/v1/bot/send?token={TOKEN}"
     payload = json.dumps({
         "recvId": recvId,
+        "recvType": recvType,
+        "contentType": contentType,
+        "content": content
+    })
+    headers = {
+        'Content-Type': 'application/json'
+    }
+    response = requests.request("POST", url, headers=headers, data=payload)
+    return json.loads(response.text)
+
+def yhchat_batch_push(recvIds, recvType, contentType, content):
+    url = f"https://chat-go.jwzhd.com/open-apis/v1/bot/batch_send?token={TOKEN}"
+    payload = json.dumps({
+        "recvIds": recvIds,
         "recvType": recvType,
         "contentType": contentType,
         "content": content
@@ -57,7 +76,7 @@ def del_message(msgId, chatId):
 
 def del_message_admin(msgId, chatId):
     start = ["0x12", "0x20"]
-    unknown_symbol = "  "
+    unknown_symbol = ""
     combined = unknown_symbol + chatId
     encoded_combined = base64.b64encode(combined.encode()).decode()
     data = ''.join(chr(int(value, 16)) for value in start) + msgId + base64.b64decode(encoded_combined).decode()
@@ -121,6 +140,7 @@ def get_redirect_url(url, max_redirects=5):
 def check_image_for_qr_code(image_url, image_name, forbidden_urls, recall_all_qr_images):
     try:
         response = requests.get(image_url)
+        image_name = image_url.split("/")[-1]
         image_path = os.path.join(tmp_dir, image_name)
         with open(image_path, 'wb') as f:
             f.write(response.content)
@@ -200,19 +220,23 @@ def handle_message(json_data):
                     yhchat_push(chat_id, "group", "text", {"text": formatted_warn_message})
                 else:
                     yhchat_push(chat_id, "group", "text", {"text": "你发送的消息包含违规词，已被自动撤回"})
-                owner_id = data.get(chat_id, {}).get(id_2, {}).get("value", "")
+                owner_ids = data.get(chat_id, {}).get(id_2, {}).get("value", "").split("\n")
                 group_name = data.get(chat_id, {}).get(id_3, {}).get("value", "")
-                if owner_id:
+                if owner_ids:
                     message = f"群 [{group_name}({chat_id}) 中的一条消息因包含违规词被撤回\n" \
                               f"被撤回用户：{user_name}\n" \
                               f"被撤回用户id：{user_id}\n" \
                               f"原消息内容：{content}\n" \
                               f"命中的违规词：{matched_word}"
-                    yhchat_push(owner_id, "user", "markdown", {"text": message})
+                    yhchat_batch_push(owner_ids, "user", "markdown", {"text": message})
 
-        elif content_type == "image" and enable_qr_check:
-            image_url = json_data["event"]["message"]["content"]["imageUrl"]
-            image_name = json_data["event"]["message"]["content"]["imageName"]
+        elif (content_type == "image" or content_type == "expression") and enable_qr_check:
+            if content_type == "image":
+                image_url = json_data["event"]["message"]["content"]["imageUrl"]
+                image_name = json_data["event"]["message"]["content"]["imageName"]
+            else:
+                image_name = json_data["event"]["message"]["content"]["imageName"]
+                image_url = f"https://chat-img.jwznb.com/{image_name}"
             is_forbidden, matched_url = check_image_for_qr_code(image_url, image_name, forbidden_urls,
                                                                  recall_all_qr_images)
             if is_forbidden:
@@ -224,15 +248,15 @@ def handle_message(json_data):
                     yhchat_push(chat_id, "group", "text", {"text": "禁止发送二维码图片"})
                 else:
                     yhchat_push(chat_id, "group", "text", {"text": f"你发送的图片包含违规二维码链接，已被自动撤回"})
-                owner_id = data.get(chat_id, {}).get(id_2, {}).get("value", "")
+                owner_ids = data.get(chat_id, {}).get(id_2, {}).get("value", "").split("\n")
                 group_name = data.get(chat_id, {}).get(id_3, {}).get("value", "")
-                if owner_id:
+                if owner_ids:
                     message = f"群 [{group_name}({chat_id}) 中的一条图片消息因包含违规二维码链接被撤回\n" \
                               f"被撤回用户：{user_name}\n" \
                               f"被撤回用户id：{user_id}\n" \
                               f"图片链接：![图片]({image_url})\n" \
                               f"命中的违规链接：{matched_url}"
-                    yhchat_push(owner_id, "user", "markdown", {"text": message})
+                    yhchat_batch_push(owner_ids, "user", "markdown", {"text": message})
 
     elif event_type == "bot.setting":
         chat_id = json_data["event"]["groupId"]

@@ -8,9 +8,19 @@
 * 支持顶级域以及子域屏蔽（例如*.top）
 * 支持自定义撤回后的提示消息
 
-*id_7 和 ADMIN_TOKEN 需使用用户token，一般情况下不需要启用*
-
 - 默认监听http://server_ip:56669/yhchat
+
+>部署示例：
+>下载main.py后
+>在当前目录下新建一个.env
+>然后填写
+>```
+>ID_1=<表单id>
+>…………
+>ID_8=<表单id>
+>TOKEN=<机器人token>
+>
+>python main.py
 
 * 表单示例
 
