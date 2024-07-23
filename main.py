@@ -56,14 +56,12 @@ def del_message(msgId, chatId):
 
 
 def del_message_admin(msgId, chatId):
-    # 准备数据
     start = ["0x12", "0x20"]
-    unknown_symbol = "  "  # 根据你的描述，这个符号是已知的，替换为实际符号
+    unknown_symbol = "  "
     combined = unknown_symbol + chatId
     encoded_combined = base64.b64encode(combined.encode()).decode()
     data = ''.join(chr(int(value, 16)) for value in start) + msgId + base64.b64decode(encoded_combined).decode()
 
-    # 准备请求头
     headers = {
         "User-Agent": "windows 1.5.47",
         "Accept": "application/x-protobuf",
@@ -73,7 +71,6 @@ def del_message_admin(msgId, chatId):
         "token": ADMIN_TOKEN
     }
 
-    # 发送 POST 请求
     response = requests.post("https://chat-go.jwzhd.com/v1/msg/recall-msg", data=data, headers=headers)
     return response
 
@@ -166,7 +163,6 @@ def check_image_for_qr_code(image_url, image_name, forbidden_urls, recall_all_qr
 
 def check_forbidden_word(content, forbidden_words):
     for word in forbidden_words:
-        # 使用re.search匹配正则表达式, 忽略大小写
         if re.search(word, content, re.IGNORECASE):
             return True, word
     return False, None
@@ -182,7 +178,6 @@ def handle_message(json_data):
         user_name = json_data["event"]["sender"]["senderNickname"]
         data = load_data()
 
-        # 修复：判断是否为空字符串后再进行 split
         forbidden_words = data.get(chat_id, {}).get(id_1, {}).get("value", "")
         if forbidden_words:
             forbidden_words = forbidden_words.split('\n')
@@ -191,7 +186,6 @@ def handle_message(json_data):
         use_admin_token = data.get(chat_id, {}).get(id_7, {}).get("value", False)
         recall_all_qr_images = data.get(chat_id, {}).get(id_8, {}).get("value", False)
 
-        # 只有当敏感词列表不为空时才进行判断
         if forbidden_words and (content_type == "text" or content_type == "markdown"):
             content = json_data["event"]["message"]["content"]["text"]
             is_forbidden, matched_word = check_forbidden_word(content, forbidden_words)
