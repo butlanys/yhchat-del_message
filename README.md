@@ -28,3 +28,42 @@
 ![](images/1.png)
 
 - 使用管理员权限撤回涉及到用户token，所以一般情况下不需要添加
+
+如果想获得用户token，请在bash终端输入
+```
+curl 'https://chat-go.jwzhd.com/v1/user/email-login' \
+  -H 'Accept: */*' \
+  -H 'Accept-Language: zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6' \
+  -H 'Connection: keep-alive' \
+  -H 'Origin: https://chat.yhchat.com' \
+  -H 'Referer: https://chat.yhchat.com/' \
+  -H 'Sec-Fetch-Dest: empty' \
+  -H 'Sec-Fetch-Mode: cors' \
+  -H 'Sec-Fetch-Site: cross-site' \
+  -H 'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36 Edg/126.0.0.0' \
+  -H 'content-type: application/json' \
+  -H 'sec-ch-ua: "Not/A)Brand";v="8", "Chromium";v="126", "Microsoft Edge";v="126"' \
+  -H 'sec-ch-ua-mobile: ?0' \
+  -H 'sec-ch-ua-platform: "Windows"' \
+  -H 'token;' \
+  --data-raw '{"email":"邮箱","password":"密码","deviceId":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36 Edg/126.0.0.0","platform":"Web"}'
+  ```
+  CMD
+  ```
+  curl "https://chat-go.jwzhd.com/v1/user/email-login" ^
+  -H "Accept: */*" ^
+  -H "Accept-Language: zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6" ^
+  -H "Connection: keep-alive" ^
+  -H "Origin: https://chat.yhchat.com" ^
+  -H "Referer: https://chat.yhchat.com/" ^
+  -H "Sec-Fetch-Dest: empty" ^
+  -H "Sec-Fetch-Mode: cors" ^
+  -H "Sec-Fetch-Site: cross-site" ^
+  -H "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36 Edg/126.0.0.0" ^
+  -H "content-type: application/json" ^
+  -H ^"sec-ch-ua: ^\^"Not/A)Brand^\^";v=^\^"8^\^", ^\^"Chromium^\^";v=^\^"126^\^", ^\^"Microsoft Edge^\^";v=^\^"126^\^"^" ^
+  -H "sec-ch-ua-mobile: ?0" ^
+  -H ^"sec-ch-ua-platform: ^\^"Windows^\^"^" ^
+  -H "token;" ^
+  --data-raw ^"^{^\^"email^\^":^\^"邮箱^\^",^\^"password^\^":^\^"密码^\^",^\^"deviceId^\^":^\^"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36 Edg/126.0.0.0^\^",^\^"platform^\^":^\^"Web^\^"^}^"
+  ```
