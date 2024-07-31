@@ -21,6 +21,7 @@
 >ID_10=<表单id>
 >TOKEN=<机器人token>
 >
+>pip3 install flask requests zxing pillow python-dotenv #zxing需要java环境，请自行安装
 >python main.py
 
 * 表单示例
