@@ -18,7 +18,7 @@
 >```
 >ID_1=<表单id>
 >…………
->ID_8=<表单id>
+>ID_10=<表单id>
 >TOKEN=<机器人token>
 >
 >python main.py
