@@ -75,7 +75,7 @@ def del_message(msgId, chatId):
 
 def del_message_admin(msgId, chatId):
     start = ["0x12", "0x20"]
-    unknown_symbol = "  "
+    unknown_symbol = ""
     combined = unknown_symbol + chatId
     encoded_combined = base64.b64encode(combined.encode()).decode()
     data = ''.join(chr(int(value, 16)) for value in start) + msgId + base64.b64decode(encoded_combined).decode()
