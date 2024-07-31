@@ -8,9 +8,8 @@ import base64
 import re
 from dotenv import load_dotenv
 
-load_dotenv()  # 加载.env文件
+load_dotenv()
 
-# 从环境变量中获取配置
 id_1 = os.getenv("ID_1")  # 敏感词的表单id
 id_2 = os.getenv("ID_2")  # 群主的用户id的表单id
 id_3 = os.getenv("ID_3")  # 群名称的表单id
@@ -19,9 +18,11 @@ id_5 = os.getenv("ID_5")  # 违规网址链接的表单id
 id_6 = os.getenv("ID_6")  # 撤回后的提示消息的表单id
 id_7 = os.getenv("ID_7")  # 使用管理员权限撤回开关的表单id
 id_8 = os.getenv("ID_8")  # 撤回所有带二维码的图片
+id_9 = os.getenv("ID_9")  # 白名单表单id
+id_10 = os.getenv("ID_10") # 黑名单表单id
 
 TOKEN = os.getenv("TOKEN")  # 可在官网后台获取
-ADMIN_TOKEN = os.getenv("ADMIN_TOKEN")  # 管理员token
+ADMIN_TOKEN = os.getenv("ADMIN_TOKEN")  # 管理员的用户token
 
 app = Flask(__name__)
 data_path = 'data.json'
@@ -44,6 +45,7 @@ def yhchat_push(recvId, recvType, contentType, content):
     }
     response = requests.request("POST", url, headers=headers, data=payload)
     return json.loads(response.text)
+
 
 def yhchat_batch_push(recvIds, recvType, contentType, content):
     url = f"https://chat-go.jwzhd.com/open-apis/v1/bot/batch_send?token={TOKEN}"
@@ -205,6 +207,16 @@ def handle_message(json_data):
         enable_qr_check = data.get(chat_id, {}).get(id_4, {}).get("value", False)
         use_admin_token = data.get(chat_id, {}).get(id_7, {}).get("value", False)
         recall_all_qr_images = data.get(chat_id, {}).get(id_8, {}).get("value", False)
+        white_list = data.get(chat_id, {}).get(id_9, {}).get("value", "").split("\n")
+        black_list = data.get(chat_id, {}).get(id_10, {}).get("value", "").split("\n")
+
+        if user_id in black_list:
+            del_message(msg_id, chat_id)
+            yhchat_push(chat_id, "group", "text", {"text": "你已被禁言，如有异议请联系管理员解封"})
+            return
+
+        if user_id in white_list:
+            return
 
         if forbidden_words and (content_type == "text" or content_type == "markdown"):
             content = json_data["event"]["message"]["content"]["text"]
